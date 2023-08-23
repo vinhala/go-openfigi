@@ -1,0 +1,459 @@
+openapi: 3.0.0
+info:
+  title: OpenFIGI API
+  description: A free & open API for FIGI discovery.
+  termsOfService: https://openfigi.com/docs/terms-of-service
+  contact:
+    name: OpenFIGI API Support
+    url: https://openfigi.com/api
+    email: support@openfigi.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.4.0
+servers:
+- url: "https://api.openfigi.com/{basePath}"
+  description: Production Tier
+  variables:
+    basePath:
+      enum:
+      - v1
+      - v2
+      - v3
+      default: v1
+security:
+- {}
+- ApiKeyAuth: []
+paths:
+  /mapping:
+    post:
+      description: Allows mapping from third-party identifiers to FIGIs.
+      requestBody:
+        description: A list of third-party identifiers and extra filters.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkMappingJob'
+      responses:
+        "200":
+          description: A list of FIGIs and their metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkMappingJobResult'
+        "400":
+          description: Invalid request (body).
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+        "401":
+          description: API Key is invalid.
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+        "406":
+          description: Unsupported 'Accept' type.
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+        "413":
+          description: Too many mapping jobs in request.
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+        "500":
+          description: Internal server error.
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+  /mapping/values/{key}:
+    get:
+      description: Get values for enum-like fields.
+      parameters:
+      - name: key
+        in: path
+        description: Key of MappingJob for which to get possible values.
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          enum:
+          - idType
+          - exchCode
+          - micCode
+          - currency
+          - marketSecDes
+          - securityType
+          - securityType2
+      responses:
+        "200":
+          description: The list of values.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Invalid request (key).
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+        "500":
+          description: Internal server error.
+          content:
+            '*/*':
+              schema:
+                type: string
+                x-content-type: '*/*'
+components:
+  schemas:
+    NullableNumberInterval:
+      maxItems: 2
+      minItems: 2
+      type: array
+      description: At least one entry should be non-null.
+      nullable: true
+      items:
+        type: number
+        nullable: true
+      x-schema-name: NullableNumberInterval
+    NullableDateInterval:
+      maxItems: 2
+      minItems: 2
+      type: array
+      description: At least one entry should be non-null.
+      nullable: true
+      items:
+        type: string
+        format: date
+        nullable: true
+      x-schema-name: NullableDateInterval
+    MappingJob:
+      required:
+      - idType
+      - idValue
+      type: object
+      properties:
+        idType:
+          type: string
+          enum:
+          - ID_ISIN
+          - ID_BB_UNIQUE
+          - ID_SEDOL
+          - ID_COMMON
+          - ID_WERTPAPIER
+          - ID_CUSIP
+          - ID_BB
+          - ID_ITALY
+          - ID_EXCH_SYMBOL
+          - ID_FULL_EXCHANGE_SYMBOL
+          - COMPOSITE_ID_BB_GLOBAL
+          - ID_BB_GLOBAL_SHARE_CLASS_LEVEL
+          - ID_BB_SEC_NUM_DES
+          - ID_BB_GLOBAL
+          - TICKER
+          - ID_CUSIP_8_CHR
+          - OCC_SYMBOL
+          - UNIQUE_ID_FUT_OPT
+          - OPRA_SYMBOL
+          - TRADING_SYSTEM_IDENTIFIER
+          - ID_CINS
+          - ID_SHORT_CODE
+          - BASE_TICKER
+          - VENDOR_INDEX_CODE
+        idValue:
+          oneOf:
+          - type: string
+          - type: integer
+          default: string
+        exchCode:
+          type: string
+          nullable: true
+        micCode:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        marketSecDes:
+          type: string
+          nullable: true
+        securityType:
+          type: string
+          nullable: true
+        securityType2:
+          type: string
+          nullable: true
+        includeUnlistedEquities:
+          type: boolean
+          nullable: true
+        optionType:
+          type: string
+          nullable: true
+          enum:
+          - Put
+          - Call
+        strike:
+          $ref: '#/components/schemas/NullableNumberInterval'
+        contractSize:
+          $ref: '#/components/schemas/NullableNumberInterval'
+        coupon:
+          $ref: '#/components/schemas/NullableNumberInterval'
+        expiration:
+          $ref: '#/components/schemas/NullableDateInterval'
+        maturity:
+          $ref: '#/components/schemas/NullableDateInterval'
+        stateCode:
+          type: string
+          nullable: true
+          enum:
+          - AB
+          - AC
+          - AC
+          - AH
+          - AK
+          - AL
+          - AM
+          - AR
+          - AS
+          - AT
+          - AZ
+          - BC
+          - BJ
+          - CA
+          - CB
+          - CO
+          - CQ
+          - CT
+          - CZ
+          - DC
+          - DE
+          - EH
+          - FH
+          - FI
+          - FJ
+          - FL
+          - FO
+          - FS
+          - GA
+          - GD
+          - GF
+          - GM
+          - GS
+          - GU
+          - GX
+          - GZ
+          - HA
+          - HB
+          - HE
+          - HG
+          - HI
+          - HI
+          - HL
+          - HN
+          - HO
+          - HS
+          - IA
+          - ID
+          - IG
+          - IK
+          - IL
+          - IN
+          - IT
+          - JL
+          - JS
+          - JX
+          - KA
+          - KC
+          - KN
+          - KO
+          - KS
+          - KT
+          - KU
+          - KY
+          - LA
+          - LN
+          - MA
+          - MB
+          - MD
+          - ME
+          - ME
+          - MG
+          - MI
+          - MN
+          - MO
+          - MS
+          - MT
+          - MZ
+          - NB
+          - NC
+          - ND
+          - NE
+          - NG
+          - NH
+          - NJ
+          - NL
+          - NM
+          - NM
+          - NN
+          - NR
+          - NS
+          - NS
+          - NS
+          - NT
+          - NU
+          - NV
+          - NW
+          - NX
+          - NY
+          - OH
+          - OK
+          - "ON"
+          - "ON"
+          - OR
+          - OS
+          - OT
+          - OT
+          - OY
+          - PA
+          - PE
+          - PR
+          - QC
+          - QH
+          - QL
+          - RI
+          - SA
+          - SA
+          - SC
+          - SC
+          - SD
+          - SD
+          - SH
+          - SI
+          - SK
+          - SN
+          - SN
+          - ST
+          - SX
+          - SZ
+          - TA
+          - TG
+          - TJ
+          - TK
+          - TN
+          - TS
+          - TT
+          - TT
+          - TX
+          - TY
+          - UT
+          - VA
+          - VI
+          - VI
+          - VT
+          - WA
+          - WA
+          - WI
+          - WK
+          - WV
+          - WY
+          - XJ
+          - XZ
+          - YA
+          - YN
+          - YN
+          - YT
+          - YU
+          - ZJ
+      description: "For V3: securityType2 is required when idType is BASE_TICKER or\
+        \ ID_EXCH_SYMBOL.  expiration is required when securityType2 is Option or\
+        \ Warrant.  maturity is required when securityType2 is Pool."
+    BulkMappingJob:
+      type: array
+      items:
+        $ref: '#/components/schemas/MappingJob'
+    FigiResult:
+      type: object
+      properties:
+        figi:
+          type: string
+        securityType:
+          type: string
+          nullable: true
+        marketSector:
+          type: string
+          nullable: true
+        ticker:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        exchCode:
+          type: string
+          nullable: true
+        shareClassFIGI:
+          type: string
+          nullable: true
+        compositeFIGI:
+          type: string
+          nullable: true
+        securityType2:
+          type: string
+          nullable: true
+        securityDescription:
+          type: string
+          nullable: true
+        metadata:
+          type: string
+          description: Exists when API is unable to show non-FIGI fields.
+          nullable: true
+    MappingJobResultFigiNotFound:
+      type: object
+      properties:
+        warning:
+          type: string
+    MappingJobResultFigiList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/FigiResult'
+    MappingJobResult:
+      oneOf:
+      - $ref: '#/components/schemas/MappingJobResultFigiList'
+      - $ref: '#/components/schemas/MappingJobResultFigiNotFound'
+    BulkMappingJobResult:
+      type: array
+      items:
+        $ref: '#/components/schemas/MappingJobResult'
+      x-schema-name: BulkMappingJobResult
+    inline_response_200:
+      type: object
+      properties:
+        values:
+          type: array
+          items:
+            type: string
+      example:
+        values:
+        - values
+        - values
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: X-OPENFIGI-APIKEY
+      in: header
