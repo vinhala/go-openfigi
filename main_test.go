@@ -28,24 +28,25 @@ func TestPostMapping(t *testing.T) {
 		IdValue:  "851399",
 		ExchCode: "US",
 	}
+	jobs := []openfigi.MappingJob[string]{job}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	opts := openfigi.DefaultApiMappingPostOpts{
-		Body: optional.NewInterface(job),
+		Body: optional.NewInterface(jobs),
 	}
-	resp, _, err := client.DefaultApi.MappingPost(ctx, &opts)
+	res, _, err := client.DefaultApi.MappingPost(ctx, &opts)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	if len(resp) == 0 {
+	if len(res) == 0 {
 		t.Errorf("Expected atleast one result, got none")
 		return
 	}
-	if resp[0].Warning != "" {
-		t.Errorf("Expected no warning, got %s", resp[0].Warning)
+	if res[0].Warning != "" {
+		t.Errorf("Expected no warning, got %s", res[0].Warning)
 		return
 	}
-	fmt.Printf("%+v\n", resp[0])
+	fmt.Printf("%+v\n", res[0])
 }
