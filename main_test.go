@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -47,6 +48,34 @@ func TestPostMapping(t *testing.T) {
 		t.Errorf("Expected no warning, got %s", res[0].Warning)
 		return
 	}
+}
+
+func TestSearchPost(t *testing.T) {
+	client := main.NewAPIClient(nil, "")
+	if client == nil {
+		t.Error("Expected client to be not nil")
+	}
+	job := openfigi.SearchJob{
+		Query: "ibm",
+	}
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	res, _, err := client.DefaultApi.SearchPost(ctx, job)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if len(res.Error) > 0 {
+		t.Errorf("Got an error: %s", res.Error)
+		return
+	}
+	//Should return one result
+	if len(res.Data) < 1 {
+		t.Errorf("Expected results, got %d", len(res.Data))
+		return
+	}
+	fmt.Println(res.Data[0])
 }
 
 func TestAPIKeyHeader(t *testing.T) {
