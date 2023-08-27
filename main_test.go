@@ -2,7 +2,6 @@ package main_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -48,5 +47,30 @@ func TestPostMapping(t *testing.T) {
 		t.Errorf("Expected no warning, got %s", res[0].Warning)
 		return
 	}
-	fmt.Printf("%+v\n", res[0])
+}
+
+func TestAPIKeyHeader(t *testing.T) {
+	client := main.NewAPIClient(nil, "MyAPIKey")
+	if client == nil {
+		t.Error("Expected client to be not nil")
+	}
+	job := openfigi.MappingJob[string]{
+		IdType:   "ID_WERTPAPIER",
+		IdValue:  "851399",
+		ExchCode: "US",
+	}
+	jobs := []openfigi.MappingJob[string]{job}
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	opts := openfigi.DefaultApiMappingPostOpts{
+		Body: optional.NewInterface(jobs),
+	}
+	_, resp, _ := client.DefaultApi.MappingPost(ctx, &opts)
+	//Should have a header for the API key
+	head := resp.Request.Header.Get("X-OPENFIGI-APIKEY")
+	if head != "MyAPIKey" {
+		t.Errorf("Expected header to be MyAPIKey, got %s", head)
+		return
+	}
 }
